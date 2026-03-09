@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
 $username = "root";
-$password = "Dhan@122006";
+$password = "password";
 $dbname = "snake_ladder_db";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
