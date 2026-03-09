@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake & Ladder</title>
+  <link href="style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="bg-wrapper">
+    <!-- Auth Profile Section -->
+    <div id="auth-section" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+      <div id="guest-ui">
+        <button onclick="showAuthModal('login')" class="btn-custom"
+          style="font-size: 1rem; padding: 10px 20px;">Login</button>
+        <button onclick="showAuthModal('register')" class="btn-custom"
+          style="font-size: 1rem; padding: 10px 20px; background: var(--secondary-color);">Register</button>
+      </div>
+      <div id="user-ui"
+        style="display: none; background: var(--glass-bg); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--glass-border); color: white; display: flex; align-items: center; gap: 15px;">
+        <span>Welcome, <strong id="username-display"></strong></span>
+        <button onclick="logout()" class="btn-custom"
+          style="font-size: 0.8rem; padding: 5px 15px; margin: 0;">Logout</button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <h1 class="game-title">Snake & Ladder</h1>
+
+      <div class="menu-options">
+        <a href="game.php?mode=local" class="btn-custom">
+          <i class='bx bx-group'></i> Local Multiplayer
+        </a>
+        <br>
+        <a href="game.php?mode=computer" class="btn-custom">
+          <i class='bx bx-laptop'></i> Play vs Computer
+        </a>
+        <br>
+        <button onclick="checkOnlineAccess()" class="btn-custom">
+          <i class='bx bx-world'></i> Online Multiplayer
+        </button>
+        <br>
+        <button onclick="checkLeaderboardAccess()" class="btn-custom"
+          style="background: linear-gradient(45deg, #f1c40f, #e67e22);">
+          <i class='bx bxs-trophy'></i> Leaderboard
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 id="modal-title"
+        style="color: black;font-size: 40px;font-family: comic sans ms;font-weight: bold;text-align: center;">LOGIN</h2>
+      <div class="form-box" style="background: transparent; box-shadow: none; padding: 5px; border: none;">
+        <input type="text" id="auth-username" placeholder="Username" class="form-control"
+          style="width: 89%;background-color: rgb(232, 229, 229) ;">
+        <input type="password" id="auth-password" placeholder="Password" class="form-control"
+          style="width: 89%;background-color: rgb(232, 229, 229) ;">
+        <button id="auth-submit" class="btn-custom" style="width: 90%;">Submit</button>
+        <p id="auth-error" style="color: #ff0033; margin-top: 10px;font-size: 20px;font-family: comic sans ms;"></p>
+      </div>
+      <button onclick="closeAuthModal()" class="btn-custom"
+        style="background: #666; font-size: 1rem; width: 30%; ">Close</button>
+    </div>
+  </div>
+
+  <script>
+    function showAuthModal(type) {
+      document.getElementById('auth-modal').classList.add('show');
+      document.getElementById('modal-title').innerText = type === 'login' ? 'Login' : 'Register';
+      document.getElementById('auth-submit').onclick = () => handleAuth(type);
+      document.getElementById('auth-error').innerText = '';
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.remove('show');
+    }
+
+    async function handleAuth(action) {
+      const username = document.getElementById('auth-username').value;
+      const password = document.getElementById('auth-password').value;
+      const errorEl = document.getElementById('auth-error');
+
+      const formData = new FormData();
+      formData.append('action', action);
+      formData.append('username', username);
+      formData.append('password', password);
+
+      try {
+        const resp = await fetch('auth.php', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (data.status === 'success') {
+          location.reload();
+        } else {
+          errorEl.innerText = data.message;
+        }
+      } catch (e) {
+        errorEl.innerText = "Connection error";
+      }
+    }
+
+    async function checkSession() {
+      const resp = await fetch('auth.php?get_session=1', {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'get_session' })
+      });
+      const data = await resp.json();
+      if (data.status === 'success') {
+        document.getElementById('guest-ui').style.display = 'none';
+        document.getElementById('user-ui').style.display = 'flex';
+        document.getElementById('username-display').innerText = data.username;
+        return true;
+      } else {
+        document.getElementById('guest-ui').style.display = 'block';
+        document.getElementById('user-ui').style.display = 'none';
+        return false;
+      }
+    }
+
+    async function logout() {
+      await fetch('auth.php', {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'logout' })
+      });
+      location.reload();
+    }
+
+    async function checkLeaderboardAccess() {
+      const loggedIn = await checkSession();
+      if (loggedIn) {
+        window.location.href = 'leaderboard.php';
+      } else {
+        alert("Please login to view leaderboard!");
+        showAuthModal('login');
+      }
+    }
+
+    async function checkOnlineAccess() {
+      const loggedIn = await checkSession();
+      if (loggedIn) {
+        window.location.href = 'lobby.php';
+      } else {
+        alert("Please login to play online!");
+        showAuthModal('login');
+      }
+    }
+
+    checkSession();
+  </script>
+
+</body>
+
+</html>
