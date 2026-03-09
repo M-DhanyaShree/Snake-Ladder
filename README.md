@@ -1,4 +1,4 @@
-# Online Snake and Ladder
+# Snake & Ladder Game
 
 This is a web-based version of the classic Snake and Ladder board game. It allows players to play together online or against a computer. The project is focused on providing a smooth multiplayer experience with real-time updates and a competitive leaderboard system.
 
